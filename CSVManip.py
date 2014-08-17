@@ -24,27 +24,27 @@ class CSVManip:
 		finally:
 			f.close()
 
-	""" @parameters: 	sublist (list of dictionaries: representing single csv file), 
+	""" @parameters: 	records (list of dictionaries: representing single csv file), 
 						filename (string: file to export file to)
 		@return:		NULL
 	"""
-	def exportRecords(self, sublist, filename):
+	def exportRecords(self, records, filename):
 		print(os.path.join(self.scriptPath, filename))
 		with open(os.path.join(self.scriptPath, filename + '.csv'), 'w', newline='') as exportcsv:
-			csvwriter = csv.DictWriter(exportcsv, sublist[0].keys())
+			csvwriter = csv.DictWriter(exportcsv, records[0].keys())
 			csvwriter.writeheader()
-			csvwriter.writerows(sublist)
+			csvwriter.writerows(records)
 		
 		exportcsv.close()
 
 		
-	""" @parameters:	sublist (list of dictionaries)
+	""" @parameters:	records (list of dictionaries)
 		@return:		sortedlist (list of dictionaries)
 		@description:	Determines possible fields based on header contents.
 						Gives user option of one or more fields to sort by, quit on a -1.
 						After user supplies sort, sorts list and return list.
 	"""
-	def sortRecords(self, sublist):
+	def sortRecords(self, records):
 		print("Select fields to sort by -")
 		for i, field in enumerate(self.headers):
 			print("{}: {}, ".format(i, field), end="")
@@ -67,9 +67,9 @@ class CSVManip:
 		
 		if len(sortFields) > 0:
 			for field in reversed(sortFields):
-				sublist = sorted(sublist, key=lambda k: k[field])
+				records = sorted(records, key=lambda k: k[field])
 				
-		return sublist
+		return records
 		
 	"""	@parameters:	records (list of dictionaries: records to be manipulated)
 						numOfLists (int: number of lists to divide array into)
@@ -96,8 +96,6 @@ class CSVManip:
 def main():
 	myArray = CSVManip('test.csv')
 	
-	# myArray.sortRecords(myArray.records)
-	# myArray.exportRecords(myArray.records, 'export')
 	myArray.divideRecords(myArray.sortRecords(myArray.records), 5, 'exported\\export')
 	
 if __name__ == "__main__":
