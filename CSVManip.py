@@ -5,11 +5,10 @@ import os
 class CSVManip:
 	headers = []
 	records = []
-	csvfile = sys.argv[1]
 	scriptPath = os.path.abspath(os.path.dirname(sys.argv[0]))
 
-	def __init__(self):
-		f = open(self.csvfile, 'rt')
+	def __init__(self, filename):
+		f = open(filename, 'rt')
 		try:
 			reader = csv.DictReader(f)
 			
@@ -25,6 +24,10 @@ class CSVManip:
 		finally:
 			f.close()
 
+	""" @parameters: 	sublist (list of dictionaries: representing single csv file), 
+						filename (string: file to export file to)
+		@return:		NULL
+	"""
 	def exportRecords(self, sublist, filename):
 		print(os.path.join(self.scriptPath, filename))
 		with open(os.path.join(self.scriptPath, filename + '.csv'), 'w', newline='') as exportcsv:
@@ -33,7 +36,14 @@ class CSVManip:
 			csvwriter.writerows(sublist)
 		
 		exportcsv.close()
-	
+
+		
+	""" @parameters:	sublist (list of dictionaries)
+		@return:		sortedlist (list of dictionaries)
+		@description:	Determines possible fields based on header contents.
+						Gives user option of one or more fields to sort by, quit on a -1.
+						After user supplies sort, sorts list and return list.
+	"""
 	def sortRecords(self, sublist):
 		print("Select fields to sort by -")
 		for i, field in enumerate(self.headers):
@@ -44,7 +54,7 @@ class CSVManip:
 	
 		userChoice = int(input(":: "))
 		while (userChoice >= 0):
-			if userChoice >= 0 and userChoice <= len(self.headers)-1:
+			if userChoice <= len(self.headers)-1:
 				sortFields.append(self.headers[userChoice])
 		
 			print("Current sort list: ", end="")
@@ -57,32 +67,38 @@ class CSVManip:
 		
 		if len(sortFields) > 0:
 			for field in reversed(sortFields):
-				self.records = sorted(self.records, key=lambda k: k[field])
+				sublist = sorted(sublist, key=lambda k: k[field])
 				
-		for row in self.records:
-			print(str(row['date_issued']).encode(sys.stdout.encoding, errors='replace'), end="")
-			print(str(row['authors']).encode(sys.stdout.encoding, errors='replace'))
-	
-	def divideRecords(self, NumOfLists, filename):
-		ListSize = int(len(self.records) / NumOfLists) # Records spread across all lists
-		CountedRecords = ListSize * NumOfLists
-		UncountedRecords = len(self.records) - CountedRecords
+		return sublist
 		
-		for i in range(0, NumOfLists):
-			if i < NumOfLists-1:
+	"""	@parameters:	records (list of dictionaries: records to be manipulated)
+						numOfLists (int: number of lists to divide array into)
+						filename (string: prefix file name)
+		@return:		NULL
+		@description:	takes an array of records, then sub-divides the array into 
+						equal parts, and exports numOfList files with near equal
+						records into each. The largest list will always be the final list.
+	"""
+	def divideRecords(self, records, numOfLists, filename):
+		ListSize = int(len(records) / numOfLists) # Records spread across all lists
+		CountedRecords = ListSize * numOfLists
+		UncountedRecords = len(records) - CountedRecords
+		
+		for i in range(0, numOfLists):
+			if i < numOfLists-1:
 				endList = ListSize * (i+1)
 			else:
-				endList = len(self.records)
+				endList = len(records)
 				
-			self.exportRecords(self.records[ListSize*i:endList], (filename + "_" + str(i+1)))
+			self.exportRecords(records[ListSize*i:endList], (filename + "_" + str(i+1)))
 
 		
 def main():
-	myArray = CSVManip()
+	myArray = CSVManip('test.csv')
 	
-	myArray.sortRecords(myArray.records)
-	myArray.exportRecords(myArray.records, 'export')
-	myArray.divideRecords(5, 'export')
+	# myArray.sortRecords(myArray.records)
+	# myArray.exportRecords(myArray.records, 'export')
+	myArray.divideRecords(myArray.sortRecords(myArray.records), 5, 'exported\\export')
 	
 if __name__ == "__main__":
     main()
