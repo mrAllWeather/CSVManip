@@ -29,7 +29,10 @@ class CSVManip:
 		@return:		NULL
 	"""
 	def exportRecords(self, records, filename):
-		print(os.path.join(self.scriptPath, filename))
+		print(filename)
+		if not os.path.exists(os.path.dirname(os.path.realpath(filename))):
+			os.makedirs(os.path.dirname(os.path.realpath(filename)))
+	
 		with open(os.path.join(self.scriptPath, filename + '.csv'), 'w', newline='') as exportcsv:
 			csvwriter = csv.DictWriter(exportcsv, records[0].keys())
 			csvwriter.writeheader()
@@ -51,8 +54,12 @@ class CSVManip:
 		print(" -1 to quit")
 	
 		sortFields = []
-	
-		userChoice = int(input(":: "))
+
+		try:
+			userChoice = int(input(":: "))
+		except:
+			userChoice = -1
+
 		while (userChoice >= 0):
 			if userChoice <= len(self.headers)-1:
 				sortFields.append(self.headers[userChoice])
@@ -62,9 +69,12 @@ class CSVManip:
 				print("{}, ".format(field), end="")
 				
 			print()
-		
-			userChoice = int(input(":: "))
-		
+			
+			try:
+				userChoice = int(input(":: "))
+			except:
+				userChoice = -1
+			
 		if len(sortFields) > 0:
 			for field in reversed(sortFields):
 				records = sorted(records, key=lambda k: k[field])
@@ -92,11 +102,18 @@ class CSVManip:
 				
 			self.exportRecords(records[ListSize*i:endList], (filename + "_" + str(i+1)))
 
-		
-def main():
-	myArray = CSVManip('test.csv')
-	
-	myArray.divideRecords(myArray.sortRecords(myArray.records), 5, 'exported\\export')
-	
+
 if __name__ == "__main__":
-    main()
+	dataFile = input("Please enter name / path of csv datafile: ")
+	myArray = CSVManip(dataFile)
+	
+	try:
+		numberOfFiles = int(input("How many files do you want the record divided into?[1]: "))
+	except:
+		numberOfFiles = 1
+		
+	outputFile = input("Enter name of output files (will be in folder exported)[export]: ")
+	if outputFile == '':
+		outputFile = 'export'
+		
+	myArray.divideRecords(myArray.sortRecords(myArray.records), numberOfFiles, 'exported\\'+outputFile)
